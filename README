@@ -1,0 +1,7 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1013
+
+Syntax-highlighting and indenting for IBM's PLI on mainframes (MVS; LE/390; z/OS etc.) when using the PLIOPT-Compiler.
+Does recognize embedded SQL and CICS.
+Supports matchit-plugin
+Smart uppercasing (only source, no strings and/or comments)
+
