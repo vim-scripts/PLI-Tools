@@ -65,6 +65,15 @@ setlocal textwidth=72  "This is standard for /370-sources
 setlocal ignorecase
 set iskeyword=a-z,A-Z,#,$,@-@,_,48-57
 
+:fun! PliCheckSkip()
+let Sid=synIDattr(synID(line("."), col("."), 1), "name")
+let qSkip=(Sid=='pliComment' || Sid=='pliSQL_Statement' || Sid=='pliCICS_Statement' || Sid=='pliString')
+"if(qSkip)
+"  call confirm('Skipping '.Sid)
+"endif
+return(qSkip)
+:endfun
+
 " Don't catch SELECT within SQL-Statements
 " (any of the following chooses will work, but none in any case...)
 
@@ -77,12 +86,17 @@ let s:SQLnoselect='\<select\>\_s*[;(]'
 
 " Another way: catch any SQL-keyword possible before a SELECT - good chance in same or preceding line
 " let s:SQLnoselect='\(\(<\sql\>\|<\for\>\|<\in\>\|(\)\_s*\)\@<!\<select\>'
-
+" let b:match_skip = 'PliCheckSkip()'
+let b:match_skip = 's:pliComment\|pliString\|pliSQL_Statement\|pliCICS_Statement' 
+" let b:match_skip = 's:Comment\|String' 
 let b:match_words = '%do\>\|%proc\(edure\)\=\>:%end\>,' .
-      \'[%]\@<!\<do\>\|\<begin\>\|[%]\@<!\<proc\(edure\)\=\>\|'.s:SQLnoselect.':\<when\>\|\<other\>\|\<otherwise\>:[%]\@<!\<end\>'
+      \'[%]\@<!\<do\>\|\<begin\>\|[%]\@<!\<proc\(edure\)\=\>\|\<select\>:\<when\>\|\<other\(wise\)\=\>\|\<return\>:[%]\@<!\<end\>'
+"      \'[%]\@<!\<do\>\|\<begin\>\|[%]\@<!\<proc\(edure\)\=\>\|'.s:SQLnoselect.':\<when\>\|\<other\>\|\<otherwise\>:[%]\@<!\<end\>'
 
 " You must have VARTABS.VIM installed to use this - or comment this line out
 " You get it by http://www.vim.org/scripts/script.php?script_id=785
 call VarTab_SetStops("4,6,8,10,12,14,16,18,20,73")
+
+" :DoMatchParen
 
 :vmap <buffer> <Leader>U x"=<SID>PLI_Upcase(@")<CR>P

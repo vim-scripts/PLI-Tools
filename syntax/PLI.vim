@@ -1,7 +1,8 @@
 " Vim syntax file
 " Language:	pli 
 " Maintainer:	Ing. Michael Fitz
-" Last change:	2004-06-17_16:57:39
+" Last change:	2014-01-25_19:14:57
+" Version: 2.0 (some new items merged in from Ricky Wu's z/OS #2685)
 
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded
@@ -11,17 +12,21 @@ elseif exists("b:current_syntax")
   finish
 endif
 
+
 set isk+=#
 
 " PLI is a case insensitive language
 syn case ignore
 
+
 syn keyword pliTodo contained	TODO FIXME XXX
 
-" String
-syn region  pliString		start=+'+  end=+'[bx]\=+
 
-syn match   pliOperator		"[=!\+\-\*\/\<\>]"
+" String
+syn region  pliString		start=+'+  end=+'[bx]\=+ contains=pliLine73Error
+
+syn match   pliOperator		"[=!\+\-\*\/\<\>\^|&]"
+
 
 syn match   pliIdentifier	"\<[a-zA-Z_#][a-zA-Z0-9_#]*\>"
 
@@ -29,10 +34,7 @@ syn match   pliDelimiter	"[();,]"
 
 syn region  pliPreProc		start="%" end=";" contains=pliComment,pliString
 
-" FIXME : No Number support for floats, as I'm working on an embedded
-" project that doesn't use any.
-syn match   pliNumber		"-\=\<\d\+\>"
-"syn match   pliNumber		"\<[0-9a-fA-F]*[hH]*\>"
+syn match   pliNumber 		"[+-]\=\<\d\+\(\(\.\d\+\)\=\(E[+-]\=\d\+\)\=\)\="
 
 " If you don't like tabs
 "syn match pliShowTab "\t"
@@ -45,62 +47,73 @@ if exists("c_space_errors")
 endif
 
 "
-  " Use the same control variable as C language for I slieve
-  " users will want the same behavior
 syn match       pliCommentStarter "/\*" contained 
-syn region	pliComment	start="/\*" end="\*/" 
+syn region      pliComment	start="/\*" end="\*/" contains=pliLine73Error
 
 
 syntax match pliLabel "\<[a-zA-Z_#][a-zA-Z0-9_#]*\>:" 
-syntax region pliIncludeFile start="%include" end=";"
+syntax region pliIncludeFile start="%\s*include" end=";"
+" syn match   IncludeFile    '^-inc\s\+\S*'
 
-syntax match	pliCommentError	"\*/"
 
-syn region pliSQL_Statement start="EXEC\_s\+SQL" end=";" contains=pliComment,pliString
-syn region pliCICS_Statement start="EXEC\_s\+CICS" end=";" contains=pliComment,pliString
+syntax match    pliCommentError	"\*/"
+syntax region   pliLine73Error start='\%>72c\S\+' end='$'
+"syntax match    pliLine73Error '\%>72c$'
+
+syn region pliSQL_Statement start="EXEC\_s\+SQL" end=";" contains=pliComment,pliString,pliNumber
+" TQL ist ein SQL-Dialekt
+syn region pliSQL_Statement start="EXEC\_s\+TQL" end=";" contains=pliComment,pliString,pliNumber 
+syn region pliCICS_Statement start="EXEC\_s\+CICS" end=";" contains=pliComment,pliString,pliNumber
 
 syn keyword pliType     BIN[ARY] DEC[IMAL] FIXED CHAR VAR[YING] STATIC AUTO BIT UNAL PIC[TURE] BASED 
-syn keyword pliType     PTR FLOAT ENTRY
+syn keyword pliType     PTR FLOAT ENTRY POINTER EXTERNAL INIT[IAL] UNAL[IGNED] 
 
-syn keyword pliReserved	CALL
-syn keyword pliReserved DECLARE DCL BUILTIN REPEAT
-syn keyword pliReserved GO GOTO EXTERNAL INIT[IAL] CTL CONTROLLED REFER
-syn keyword pliReserved REENTRANT RETURN[S] REORDER ORDER PROC 
-syn keyword pliReserved FILE STREAM INPUT OUTPUT PUT SKIP LIST DATA ENV BLKSIZE EDIT
-syn keyword pliReserved BY IF THEN ELSE WHILE DO END UNTIL SELECT WHEN OTHER[WISE]
-syn keyword pliReserved ALLOC FREE DELAY
+syn keyword pliFlowChange CALL GOTO LEAVE ITERATE RETURN SIGNAL
 
-syn keyword pliBuiltin ABS ACOS ACOSF ADD ADDR ADDRDATA 
-syn keyword pliBuiltin ALL ALLOCATE ALLOCATION ALLOCSIZE ANY ASIN 
-syn keyword pliBuiltin ASINF ATAN ATAND ATANF ATANH AUTOMATIC AVAILABLEAREA 
-syn keyword pliBuiltin BINARYVALUE BITLOCATION BOOL BYTE 
-syn keyword pliBuiltin CDS CEIL CENTERLEFT CENTRELEFT CENTERRIGHT CENTRERIGHT CHARACTER CHARGRAPHIC CHARVAL 
-syn keyword pliBuiltin CHECKSTG COLLATE COMPARE COMPLEX CONJG COPY COS COSD 
-syn keyword pliBuiltin COSF COSH COUNT CS CURRENTSIZE CURRENTSTORAGE CSTG
-syn keyword pliBuiltin DATAFIELD DATE DATETIME DAYS DAYSTODATE DAYSTOSECS DIM[ENSION] DIVIDE 
-syn keyword pliBuiltin EMPTY ENDFILE ENTRYADDR EPSILON ERF ERFC EXP EXPF EXPONENT 
-syn keyword pliBuiltin FILEDDINT FILEDDTEST FILEDDWORD FILEID FILEOPEN FILEREAD FILESEEK FILETELL FILEWRITE FLOOR 
-syn keyword pliBuiltin GAMMA GETENV GRAPHIC 
-syn keyword pliBuiltin HANDLE HBOUND HEX HEXIMAGE HIGH HUGE 
-syn keyword pliBuiltin IAND IEOR IMAG INDEX INOT IOR ISIGNED ISLL ISMAIN ISRL IUNSIGNED 
-syn keyword pliBuiltin LBOUND LEFT LENGTH LINENO LOCATION LOG LOGF LOGGAMMA LOG2 LOG10 LOG10F LOW LOWERCASE LOWER2 
-syn keyword pliBuiltin MAX MAXEXP MAXLENGTH MIN MINEXP MOD MPSTR MULTIPLY NULL 
-syn keyword pliBuiltin OFFSET OFFSETADD OFFSETDIFF OFFSETSUBTRACT OFFSETVALUE OMITTED 
-syn keyword pliBuiltin ONCHAR ONCODE ONCONDCOND ONCONDID ONCOUNT ONFILE ONGSOURCE ONKEY ONLOC ONSOURCE ONSUBCODE ONWCHAR ONWSOURCE ORDINALNAME ORDINALPRED ORDINALSUCC 
-syn keyword pliBuiltin PACKAGENAME PAGENO PLACES 
-syn keyword pliBuiltin PLIASCII PLICANC PLICKPT PLIDELETE PLIDUMP PLIEBCDIC PLIFILL PLIFREE PLIMOVE PLIOVER PLIREST PLIRETC PLIRETV PLISAXA PLISAXB PLISRTA PLISRTB PLISRTC PLISRTD 
-syn keyword pliBuiltin POINTER POINTERADD POINTERDIFF POINTERSUBTRACT POINTERVALUE POLY PRECISION PRED PRESENT PROCEDURENAME PROD PUTENV PTRADD
-syn keyword pliBuiltin RADIX RAISE2 RANDOM RANK REAL REM REPATTERN REPEAT REVERSE RIGHT ROUND 
-syn keyword pliBuiltin SAMEKEY SCALE SEARCH SEARCHR SECS SECSTODATE SECSTODAYS SIGN SIGNED SIN SIND SINF SINH SIZE 
-syn keyword pliBuiltin SOURCEFILE SOURCELINE SQRT SQRTF STORAGE STG STRING SUBSTR SUBTRACT SUCC SUM SYSNULL SYSTEM 
-syn keyword pliBuiltin TALLY TAN TAND TANF TANH THREADID TIME TINY TRANSLATE TRIM TRUNC TYPE 
-syn keyword pliBuiltin UNALLOCATED UNSIGNED UNSPEC UPPERCASE 
-syn keyword pliBuiltin VALID VALIDDATE VARGLIST VARGSIZE VERIFY VERIFYR 
-syn keyword pliBuiltin WCHARVAL WEEKDAY WHIGH WIDECHAR WLOW 
-syn keyword pliBuiltin Y4DATE Y4JULIAN Y4YEAR 
+" Vers 2: added for z/OS Enterprise
+syn keyword pliReserved ALLOC[ATE] BEGIN BLKSIZE BUILTIN BY CLOSE CONTROLLED CTL
+syn keyword pliReserved DATA DCL DECLARE DEF[INED] DEFAULT DELAY DFT DO
+syn keyword pliReserved EDIT ELSE END ENV ERROR EXTERNAL
+syn keyword pliReserved FETCH FILE FREE IF INPUT LIKE LIST LOOP MAIN
+syn keyword pliReserved ON OPEN OPTIONS ORDER OTHER[WISE] OUTPUT PRINT
+syn keyword pliReserved PROC[EDURE] PUT REENTRANT REFER REORDER REPEAT RETURNS
+syn keyword pliReserved SELECT SKIP SNAP STREAM SYSTEM THEN
+syn keyword pliReserved TO UNTIL WHEN WHILE
+
+" Vers 2: added for z/OS Enterprise
+syn keyword pliBuiltin ABS ACOS ACOSF ADD ADDR ADDRDATA ALL ALLOCATE ALLOCATION ALLOCSIZE ANY
+syn keyword pliBuiltin ASIN ASINF ATAN ATAND ATANF ATANH AUTOMATIC AVAILABLEAREA BINARYVALUE BINVALUE BITLOCATION
+syn keyword pliBuiltin BOOL BYTE CDS CEIL CENT CENTERLEFT CENTERRIGHT CENTRELEFT CENTRERIGHT CHARACTER CHARGRAPHIC
+syn keyword pliBuiltin CHARVAL CHECKSTG CHKEOM CHKMNT2 CHKMNTH CHKNUM CHKSIGN COLLATE COMPARE COMPLEX CONJG
+syn keyword pliBuiltin COPY COS COSD COSF COSH COUNT CS CSTG CURRENTSIZE CURRENTSTORAGE DATAFIELD
+syn keyword pliBuiltin DATE DATETIME DAYS DAYSTODATE DAYSTOSECS DIM[ENSION] DIVIDE DTFORMAT DUMP EMPTY ENDFILE
+syn keyword pliBuiltin ENTRYADDR EPSILON ERF ERFC EXP EXPF EXPONENT FILEDDINT FILEDDTEST FILEDDWORD FILEID
+syn keyword pliBuiltin FILEOPEN FILEREAD FILESEEK FILETELL FILEWRITE FLOOR GAMMA GETENV GRAPHIC GREGJUL HANDLE HBOUND
+syn keyword pliBuiltin HEX HEXIMAGE HIGH HUGE IAND IEOR IMAG INDEX INIT[IAL] INOT IOR
+syn keyword pliBuiltin ISIGNED ISLL ISMAIN ISRL IUNSIGNED LBOUND LEFT LENGTH LINENO LOCATION LOG LOG10
+syn keyword pliBuiltin LOG10F LOG2 LOGF LOGGAMMA LOW LOWER2 LOWERCASE MAX MAXEXP MAXLENGTH MIN
+syn keyword pliBuiltin MINEXP MOD MPSTR MULTIPLY NOFOFL NULL OFFSET OFFSETADD OFFSETDIFF OFFSETSUBTRACT OFFSETVALUE
+syn keyword pliBuiltin OMITTED ONCHAR ONCODE ONCONDCOND ONCONDID ONCOUNT ONFILE ONGSOURCE ONKEY ONLOC ONSOURCE
+syn keyword pliBuiltin ONSUBCODE ONWCHAR ONWSOURCE ORDINALNAME ORDINALPRED ORDINALSUCC PACKAGENAME PAGENO PICSPEC PLACES PLIASCII
+syn keyword pliBuiltin PLICANC PLICKPT PLIDELETE PLIDUMP PLIEBCDIC PLIFILL PLIFREE PLIMOVE PLIOVER PLIREST PLIRETC
+syn keyword pliBuiltin PLIRETV PLISAXA PLISAXB PLISRTA PLISRTB PLISRTC PLISRTD POINTER POINTERADD POINTERDIFF POINTERSUBTRACT
+syn keyword pliBuiltin POINTERVALUE POLY PRECISION PRED PRESENT PROCEDURENAME PROD PTRADD PTRVALUE PUTENV RADIX
+syn keyword pliBuiltin RAISE2 RANDOM RANK REAL REM REPATTERN REPEAT REVERSE RIGHT ROUND RUCHKNUM
+syn keyword pliBuiltin SAMEKEY SCALE SEARCH SEARCHR SECS SECSTODATE SECSTODAYS SIGN SIGNED SIN SIND
+syn keyword pliBuiltin SINF SINH SIZE SOURCEFILE SOURCELINE SQRT SQRTF STG STORAGE STRING SUBSTR
+syn keyword pliBuiltin SUBTRACT SUCC SUM SYSNULL SYSPRINT SYSTEM TALLY TAN TAND TANF TANH
+syn keyword pliBuiltin THREADID TIME TIMEDIFF TINY TRANSLATE TRIM TRUNC TYPE UNALLOCATED UNSIGNED UNSPEC
+syn keyword pliBuiltin UPPERCASE VALID VALIDDATE VALUE VARGLIST VARGSIZE VERIFY VERIFYR WCHARVAL WEEKDAY WHIGH
+syn keyword pliBuiltin WIDECHAR WLOW Y4DATE Y4JULIAN Y4YEAR
+
+" Vers 2: "GO TO" is valid GOTO too 
+syn match   pliFlowChange "\<GO\>\s*\<TO\>"
+
 " Folgende BUILTINS sind auch TYPES: FIXED FLOAT EDIT BINARY DECIMAL BIT POINTER 
 
 syn sync lines=50
+
+runtime! syntax/StandardSyntax.VIM
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
@@ -126,11 +139,13 @@ if version >= 508 || !exists("did_pli_syntax_inits")
   HiLink pliIdentifier			Identifier
   HiLink pliBuiltIn			Builtin
   HiLink pliReserved			Statement
+  HiLink pliFlowChange			FlowChange
   HiLink pliPreProc			PreProc
   HiLink pliCommentError		Error
-  HiLink pliCommentString		pliString
-  HiLink pliComment2String		pliString
-  HiLink pliCommentSkip			pliComment
+  HiLink pliLine73Error	                Error
+  "HiLink pliCommentString		pliString
+  "HiLink pliComment2String		pliString
+  "HiLink pliCommentSkip			pliComment
   HiLink pliString			String
   HiLink pliComment			Comment
   HiLink pliType                        Type

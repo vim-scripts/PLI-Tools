@@ -20,8 +20,18 @@ if exists("*Get_PL1_Indent")
 endif
 
 let s:NonDos='then\|else\|when\|other\(wise\)\='
-let s:Dos='do\|begin'
+let s:Dos='do\|begin\|select'
 
+function s:CheckMatch(ZeileN,Zeile,Pattern)
+  let Col=match(a:Zeile,a:Pattern)
+  if(Col<0)
+    return(0)
+  endif
+  let Sid=synIDattr(synID(a:ZeileN,Col+1, 1), "name")
+let qMatched=!(Sid=='pliComment' || Sid=='pliSQL_Statement' || Sid=='pliCICS_Statement' || Sid=='pliString')
+"  call confirm("CheckMatch2(".a:ZeileN.','.Col.')=<'.Sid.">\r---<".a:Zeile.">--- qMatched=".qMatched)
+return(qMatched)
+endfun
 
 function Get_PL1_Indent(lnum)
 let xS='LV='.v:lnum.',LA='.a:lnum
@@ -47,22 +57,26 @@ let xS='LV='.v:lnum.',LA='.a:lnum
 
   let qNeu=0
   " call confirm(xS . "\nPZ=".pZeile."\nAZ=".aZeile)
-  if pZeile =~ '\<\(select\|' . s:NonDos .'\|'. s:Dos. '\)\>'
+  if s:CheckMatch(plnum,pZeile,'\<\(' . s:NonDos .'\|'. s:Dos. '\)\>')
+  "if pZeile =~ '\<\(' . s:NonDos .'\|'. s:Dos. '\)\>'
     " Rightindent one tab
     let curind=curind+&sw
     let qNeu=1
     " call confirm(xS.' *DO+')
-  elseif pZeile =~ '\<end\>'
+  elseif s:CheckMatch(plnum,pZeile,'\<end\>')
+  "elseif pZeile =~ '\<end\>'
     let curind=curind-&sw
     " call confirm(xS.' *END')
-  elseif aZeile =~ '^\s\+\<\(dcl\|declare\)\>\|\k\K*\:'
+  elseif s:CheckMatch(a:lnum,aZeile,'^\s\+\(\<\(dcl\|declare\)\>\|\K\k*\:\)')
+  "elseif aZeile =~ '^\s\+\(\<\(dcl\|declare\)\>\|\K\k*\:\)'
     let b:NextIndent=curind
     " call confirm(xS.' *DCL')
     return(1)
   endif
 
   " Check for an single-line 'else'&Co
-  if qNeu && pZeile !~ '\<\('.s:Dos.'\)\>' 
+  if qNeu && !s:CheckMatch(plnum,pZeile,'\<\('.s:Dos.'\)\>') 
+"  if qNeu && pZeile !~ '\<\('.s:Dos.'\)\>' 
     if (stridx(pZeile,';')==-1) "incomplete
     " call confirm('AA')
       let b:NextIndent=curind-&sw
